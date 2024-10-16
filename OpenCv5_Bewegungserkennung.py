@@ -18,7 +18,7 @@ buffer = deque(maxlen=BUFFER_SIZE)
 recording = False  # Status der Videoaufnahme
 movement_detected = False  # Bewegungserkennung
 
-motion_threshold = 15  # Bewegungsschwelle (je niedriger, desto empfindlicher)
+
 
 def detect_motion(frame1, frame2):
     # Berechne die Differenz zwischen zwei Frames
