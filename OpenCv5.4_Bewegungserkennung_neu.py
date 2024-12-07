@@ -27,8 +27,8 @@ movement_detected = False
 frame_count = 0
 
 # === TensorFlow Lite Modell laden ===
-model_path = "/home/pi/tensorflow_models/detect.tflite"
-label_path = "/home/pi/tensorflow_models/labelmap.txt"
+model_path = "/home/klaule/tensorflow_models/detect.tflite"
+label_path = "/home/klaule/tensorflow_models/labelmap.txt"
 
 interpreter = tflite.Interpreter(model_path=model_path)
 interpreter.allocate_tensors()
