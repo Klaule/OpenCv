@@ -46,7 +46,7 @@ def detect_cat(video_path):
         # Ergebnisse verarbeiten
         for detection in outputs[0, 0, :, :]:
             confidence = detection[2]
-            if confidence > 0.5:  # Schwellenwert für Erkennung
+            if confidence > 0.3:  # Schwellenwert für Erkennung
                 class_id = int(detection[1])
                 if class_id == 15:  # COCO-Label-ID für 'cat'
                     cat_detected = True
