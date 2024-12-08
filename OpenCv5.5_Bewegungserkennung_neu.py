@@ -25,11 +25,19 @@ recording = False
 movement_detected = False
 frame_count = 0
 
-# === YOLOv5-Modell laden ===
-model_path = "yolov5s.onnx"
-net = cv2.dnn.readNetFromONNX(model_path)
+# === YOLOv4-Tiny Modell laden ===
+weights_path = "yolov4-tiny.weights"
+config_path = "yolov4-tiny.cfg"
+names_path = "coco.names"
 
-# Funktion zur Katzenerkennung mit YOLOv5
+# Labels laden
+with open(names_path, 'r') as f:
+    labels = [line.strip() for line in f.readlines()]
+
+# OpenCV DNN Modell laden
+net = cv2.dnn.readNet(weights_path, config_path)
+
+# Funktion zur Katzenerkennung
 def detect_cat(video_path):
     cap = cv2.VideoCapture(video_path)
     cat_detected = False
@@ -39,19 +47,23 @@ def detect_cat(video_path):
             break
 
         # YOLO-DNN Blob erstellen
-        blob = cv2.dnn.blobFromImage(frame, 1/255.0, (640, 640), swapRB=True, crop=False)
+        blob = cv2.dnn.blobFromImage(frame, 1/255.0, (416, 416), swapRB=True, crop=False)
         net.setInput(blob)
-        outputs = net.forward()
+        outputs = net.forward(net.getUnconnectedOutLayersNames())
 
         # Ergebnisse verarbeiten
-        for detection in outputs[0, 0, :, :]:
-            confidence = detection[2]
-            if confidence > 0.3:  # Schwellenwert für Erkennung
-                class_id = int(detection[1])
-                if class_id == 15:  # COCO-Label-ID für 'cat'
+        for output in outputs:
+            for detection in output:
+                scores = detection[5:]
+                class_id = np.argmax(scores)
+                confidence = scores[class_id]
+
+                if confidence > 0.5 and labels[class_id] == 'cat':  # 'cat' erkennen
                     cat_detected = True
                     break
 
+            if cat_detected:
+                break
         if cat_detected:
             break
 
