@@ -7,7 +7,7 @@ import os
 import shutil
 
 # === Globale Parameter ===
-FRAMES_PER_SECOND = 5
+FRAMES_PER_SECOND = 10
 PRE_RECORD_SECONDS = 7
 POST_RECORD_SECONDS = 5
 BUFFER_SIZE = PRE_RECORD_SECONDS * FRAMES_PER_SECOND
@@ -36,8 +36,6 @@ with open(names_path, 'r') as f:
 
 # OpenCV DNN Modell laden
 net = cv2.dnn.readNet(weights_path, config_path)
-net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
 # Funktion zur Katzenerkennung
 def detect_cat(video_path):
@@ -49,7 +47,7 @@ def detect_cat(video_path):
             break
 
         # YOLO-DNN Blob erstellen
-        blob = cv2.dnn.blobFromImage(frame, 1/255.0, (320, 320), swapRB=True, crop=False)
+        blob = cv2.dnn.blobFromImage(frame, 1/255.0, (416, 416), swapRB=True, crop=False)
         net.setInput(blob)
         outputs = net.forward(net.getUnconnectedOutLayersNames())
 
@@ -58,8 +56,17 @@ def detect_cat(video_path):
             for detection in output:
                 scores = detection[5:]
                 class_id = np.argmax(scores)
-                confidence = scores[class_id]            
-              
+                confidence = scores[class_id]
+
+                if confidence > 0.5 and labels[class_id] == 'cat':  # 'cat' erkennen
+                    cat_detected = True
+                    break
+
+            if cat_detected:
+                break
+        if cat_detected:
+            break
+
     cap.release()
     return cat_detected
 
@@ -154,16 +161,9 @@ while True:
                     shutil.move(filename, f'{NO_CAT_VIDEO_PATH}{os.path.basename(filename)}')
                     print(f"Video enthält keine Katze und wurde verschoben.")
 
-        display_frame_bgr = cv2.cvtColor(gray_frame, cv2.COLOR_GRAY2BGR)
-        cv2.imshow("Bewegungserkennung", display_frame_bgr)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
     except Exception as e:
         print(f"Fehler: {e}")
         picam2.stop()
         picam2.start()
 
 picam2.stop()
-cv2.destroyAllWindows()
