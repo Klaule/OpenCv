@@ -7,7 +7,7 @@ import os
 import shutil
 
 # === Globale Parameter ===
-FRAMES_PER_SECOND = 10
+FRAMES_PER_SECOND = 5
 PRE_RECORD_SECONDS = 7
 POST_RECORD_SECONDS = 5
 BUFFER_SIZE = PRE_RECORD_SECONDS * FRAMES_PER_SECOND
@@ -36,6 +36,8 @@ with open(names_path, 'r') as f:
 
 # OpenCV DNN Modell laden
 net = cv2.dnn.readNet(weights_path, config_path)
+net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
 # Funktion zur Katzenerkennung
 def detect_cat(video_path):
@@ -47,7 +49,7 @@ def detect_cat(video_path):
             break
 
         # YOLO-DNN Blob erstellen
-        blob = cv2.dnn.blobFromImage(frame, 1/255.0, (416, 416), swapRB=True, crop=False)
+        blob = cv2.dnn.blobFromImage(frame, 1/255.0, (320, 320), swapRB=True, crop=False)
         net.setInput(blob)
         outputs = net.forward(net.getUnconnectedOutLayersNames())
 
@@ -56,17 +58,8 @@ def detect_cat(video_path):
             for detection in output:
                 scores = detection[5:]
                 class_id = np.argmax(scores)
-                confidence = scores[class_id]
-
-                if confidence > 0.5 and labels[class_id] == 'cat':  # 'cat' erkennen
-                    cat_detected = True
-                    break
-
-            if cat_detected:
-                break
-        if cat_detected:
-            break
-
+                confidence = scores[class_id]            
+              
     cap.release()
     return cat_detected
 
